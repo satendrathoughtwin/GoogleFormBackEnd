@@ -24,7 +24,6 @@ const createForm = async (req, res) => {
     console.log(chalk.redBright("data save not successfully", err.message));
   }
 };
-
 const getForm = async (req, res) => {
   try {
     const result = await FormModel.find();
@@ -40,21 +39,26 @@ const getForm = async (req, res) => {
     console.log(chalk.redBright("data find not successfully :", err.message));
   }
 };
-
-
 const getFormDataInDecendingOrder = async (req, res) => {
   try {
-    const result = await FormModel.find().sort({createdAt:-1});
+    const result = await FormModel.find().sort({ createdAt: -1 });
     if (result) {
-      console.log(chalk.green.inverse("data find successfully in decending order"));
+      console.log(
+        chalk.green.inverse("data find successfully in decending order")
+      );
       res.json({
         Success: `data find successfully  in decending order`,
         length: 1,
-        data: result[0]
+        data: result[0],
       });
     }
   } catch (err) {
-    console.log(chalk.redBright("data find not successfully in decending order:", err.message));
+    console.log(
+      chalk.redBright(
+        "data find not successfully in decending order:",
+        err.message
+      )
+    );
   }
 };
 const deleteQuestionById = async (req, res) => {
@@ -76,7 +80,22 @@ const deleteQuestionById = async (req, res) => {
     res.json(error);
   }
 };
-
+const deleteFormById = async (req, res) => {
+  const _id = req.params.id;
+  try {
+    const result = await FormModel.findByIdAndDelete(
+      {
+        _id,
+      },
+      { new: true, useAndModify: false }
+    );
+    if (result) {
+      res.json({ request: "Form Deleted", length: result.length, data: result });
+    }
+  } catch (error) {
+    res.json(error);
+  }
+};
 const getFormElementById = async (req, res) => {
   try {
     const result = await FormModel.find({ _id: req.params.id });
@@ -94,26 +113,27 @@ const getFormElementById = async (req, res) => {
     );
   }
 };
-
 const editFormById = async (req, res) => {
   const { title, description, formName, QuesANS, id } = req.body;
-  try{
-    const result = await FormModel.findByIdAndUpdate({_id : req.params.id},{title, description, formName})
-  } catch(err){
-    console.log(`title, description, formName,`,err.message)
+  try {
+    const result = await FormModel.findByIdAndUpdate(
+      { _id: req.params.id },
+      { title, description, formName }
+    );
+  } catch (err) {
+    console.log(`title, description, formName,`, err.message);
   }
-  console.log(title, description, formName, QuesANS, id )
+  console.log(title, description, formName, QuesANS, id);
   try {
     const result = await FormModel.updateOne(
       {
         _id: req.params.id,
       },
-      { $push: { QuesANS: QuesANS} },
+      { $push: { QuesANS: QuesANS } },
       // { $push: { QuesANS: req.body} },
       { multi: true }
     );
 
-    
     if (result) {
       console.log(chalk.green.inverse("form updated successfully By Id"));
       res.json({
@@ -129,9 +149,45 @@ const editFormById = async (req, res) => {
     res.json({
       UnSuccess: `Form didn't Update  Successfully`,
       data: [],
-      Error : err.message
+      Error: err.message,
     });
   }
 };
-export { createForm, getForm, deleteQuestionById, getFormElementById,editFormById,
-  getFormDataInDecendingOrder };
+const updateExistingQuestionById = async (req, res) => {
+  const _id = req.params.id;
+  const arreleid = req.params.arreleid;
+  console.log(_id);
+  try {
+    const result = await FormModel.updateOne(
+      {
+        _id: req.params.id,
+         "QuesANS.id": arreleid
+      },
+      {
+        $set: {
+            " QuesANS.$.Question": "yourValue",
+            " QuesANS.$.AnswerType": "yourvalue",
+            " QuesANS.$.AnswerList": "yourvalue",
+         }
+    }
+    );
+    if (result) {
+      res.json({ request: "Deleted", length: result.length, data: result });
+    }
+  } catch (error) {
+    res.json(error);
+  }
+};
+
+
+
+export {
+  createForm,
+  getForm,
+  deleteQuestionById,
+  getFormElementById,
+  editFormById,
+  getFormDataInDecendingOrder,
+  deleteFormById,
+  updateExistingQuestionById 
+};
